@@ -2,11 +2,27 @@ function eval() {
     // Do not use eval!!!
     return;
 }
+function checkBrackets(s) {
+    let check = 0;
+    for (let i = 0; i < s.length; i++) {
+        if (s[i] == '(') {
+            check++;
+        } else if (s[i] == ')') {
+            check--;
+        }
+    }
+    if (check != 0) {
+        throw new Error('ExpressionError: Brackets must be paired');
+    }
+
+}
 
 function brackets(s) {
+    checkBrackets(s);
     let lastOpen;
     let lastClose;
     let newStr = '';
+    let res;
     for (let i = s.length - 1; i >= 0; i--) {
         if (s[i] == '(') {
             lastOpen = i;
@@ -24,25 +40,57 @@ function brackets(s) {
         newStr += s[i];
     }
 
+    while (newStr.includes('*') || newStr.includes('/')) {
+        newStr = parseMultiplyDiv(newStr);
+    }
+      
+    while (newStr.includes('+') || newStr.includes('-')) {
+  
+        if(newStr[0] == '-' && !newStr.slice(1).includes('-') && !newStr.includes('+')) {
+            break;
+        }
+        newStr = parseSumSub(newStr);
+    }
+      res = newStr;
+      s = s.replace(s.slice(lastOpen, lastClose + 1), res);
+      
+      return s;
 
-    return newStr;
 
 } 
 
-function parseMultiply(st) {
-    let multiply;
+function parseMultiplyDiv(st) {
+    let operator;
     let secondOp = '';
     let firstOp = '';
     let before;
     let after;
     let res;
-    for (let i = st.length - 1; i >= 0; i--) {
-        if (st[i] == '*') {
-            multiply = i;
+    let div = 0;
+    let minus;
+    let minus2;
+    if(st[0] == '-') {
+        minus = -1;
+        st = st.slice(1);
+    } else {
+        minus = 1;
+    }
+    for (let i = 0; i < st.length; i++) {
+        if ((st[i] == '*') || (st[i] == '/')) {
+            operator = i;
+            if (st[i] == '/') {
+                div = 1;
+            }
             break;
         }
     }
-    for (let i = multiply + 1; i < st.length; i++) {
+    if(st[operator + 1] == '-') {
+        minus2 = -1;
+        st = st.slice(1);
+    } else {
+        minus2 = 1;
+    }
+    for (let i = operator + 1; i < st.length; i++) {
         if (st[i] == '*' || st[i] == '/' || st[i] == '+' || st[i] == '-') {
             after = i;
             break;
@@ -50,11 +98,12 @@ function parseMultiply(st) {
             after = st.length;
         }
     }
-    for (let i = multiply + 1; i < after; i++) {
+    for (let i = operator + 1; i < after; i++) {
             secondOp += st[i];
     }
+    
 
-    for (let i = multiply - 1; i >= 0; i--) {
+    for (let i = operator - 1; i >= 0; i--) {
         if (st[i] == '*' || st[i] == '/' || st[i] == '+' || st[i] == '-') {
             before = i;
             break;
@@ -63,64 +112,24 @@ function parseMultiply(st) {
         }
     }
 
-    for (let i = before + 1; i < multiply; i++) {
+    for (let i = before + 1; i < operator; i++) {
             firstOp += st[i];
     }
 
-    res = firstOp * secondOp;
+    if (div == 1) {
+        if (secondOp == 0) {
+            throw new Error('TypeError: Division by zero.');
+        }
+        res = minus * firstOp / (secondOp * minus2);
+    } else {
+        res = minus * firstOp * (secondOp * minus2);
+    }
+    
 
     st = st.replace(st.slice(before + 1, after), res);
 
     return st;
 
-}
-
-function parseDiv(st) {
-    let div;
-    let secondOp = '';
-    let firstOp = '';
-    let before;
-    let after;
-    let res;
-    for (let i = st.length - 1; i >= 0; i--) {
-        if (st[i] == '/') {
-            div = i;
-            break;
-        }
-    }
-    for (let i = div + 1; i < st.length; i++) {
-        if (st[i] == '*' || st[i] == '/' || st[i] == '+' || st[i] == '-') {
-            after = i;
-            break;
-        } else {
-            after = st.length;
-        }
-    }
-    for (let i = div + 1; i < after; i++) {
-            secondOp += st[i];
-    }
-
-    for (let i = div - 1; i >= 0; i--) {
-        if (st[i] == '*' || st[i] == '/' || st[i] == '+' || st[i] == '-') {
-            before = i;
-            break;
-        } else {
-            before = -1;
-        }
-    }
-
-    for (let i = before + 1; i < div; i++) {
-            firstOp += st[i];
-    }
-
-    if (secondOp == 0) {
-        throw new Error('TypeError: Division by zero.');
-    }
-    res = firstOp / secondOp;
-
-    st = st.replace(st.slice(before + 1, after), res);
-
-    return st;
 }
 
 function parseSumSub(st) {
@@ -134,8 +143,13 @@ function parseSumSub(st) {
     let nextArg; 
     let minus;
     if(st[0] == '-') {
+        
         minus = -1;
         st = st.slice(1);
+        if (!st.includes('-') && !st.includes('+')) {
+            return '-' + st;
+        }
+
     } else {
         minus = 1;
     }
@@ -200,25 +214,24 @@ function parseSumSub(st) {
 function expressionCalculator(expr) {
     // write your solution here
     let res;
-    let func;
     expr = expr.replace(/\s/g, '');
-
-    while (expr.includes('*')) {
-      expr = parseMultiply(expr);
+    while (expr.includes('(') || expr.includes(')')) {
+        expr = brackets(expr);
     }
-    while (expr.includes('/')) {
-        expr = parseDiv(expr);
+    while (expr.includes('*') || expr.includes('/')) {
+        expr = parseMultiplyDiv(expr);
     }
-
+      
     while (expr.includes('+') || expr.includes('-')) {
+  
+        if(expr[0] == '-' && !expr.slice(1).includes('-') && !expr.includes('+')) {
+            break;
+        }
         expr = parseSumSub(expr);
     }
-
-    res = expr;
+      res = expr;
+    
     return parseFloat(res);
-
-
-   
 
 }
 

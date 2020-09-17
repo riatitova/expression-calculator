@@ -118,7 +118,7 @@ function parseMultiplyDiv(st) {
             before = i;
 
             if (st[before] == '-' && 
-            (st[before - 1] == '+' || st[before - 1] == '-' || st[before - 1] == '')) 
+            (st[before - 1] == '+' || st[before - 1] == '-' || typeof st[before - 1] == 'undefined')) 
             {
                 minus = -1;
                 newst = [];
@@ -278,8 +278,7 @@ function expressionCalculator(expr) {
     return parseFloat(res);
 
 }
-
-//console.log(expressionCalculator(' 57 - 71 + (  14 + 3 - 24 * 100 / 23  ) / 53 '));
+//console.log(expressionCalculator(' 24 - 23 * 17 / (  93 + 52 * 70 * (  6 + 91 / (  (  4 / 39 / 8 * 30  ) / (  22 * 97 * (  32 * 20 * (  82 - 80 * 51 / 89 * 9  ) * 56 + 82  ) * 89  ) - 17 - 17  ) / 29 / 81  )  ) '));
 
 module.exports = {
     expressionCalculator

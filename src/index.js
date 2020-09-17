@@ -70,12 +70,7 @@ function parseMultiplyDiv(st) {
     let minus = 1;
     let minus2 = 1;
     let newst = [];
-    /*if(st[0] == '-') {
-        minus = -1;
-        st = st.slice(1);
-    } else {
-        minus = 1;
-    }*/
+   
     for (let i = 0; i < st.length; i++) {
         if ((st[i] == '*') || (st[i] == '/')) {
             operator = i;
@@ -85,7 +80,7 @@ function parseMultiplyDiv(st) {
             break;
         }
     }
-
+    //check a minus before second number
     if(st[operator + 1] == '-') {
         minus2 = -1;
         for (let k = 0; k < st.length; k++) {
@@ -99,7 +94,7 @@ function parseMultiplyDiv(st) {
     } else {
         minus2 = 1;
     }
-
+    //look for a next operator
     for (let i = operator + 1; i < st.length; i++) {
         if (st[i] == '*' || st[i] == '/' || st[i] == '+' || st[i] == '-') {
             after = i;
@@ -108,15 +103,16 @@ function parseMultiplyDiv(st) {
             after = st.length;
         }
     }
+
     for (let i = operator + 1; i < after; i++) {
             secondOp += st[i];
     }
     
-
+    //look for a previous operator
     for (let i = operator - 1; i >= 0; i--) {
         if (st[i] == '*' || st[i] == '/' || st[i] == '+' || st[i] == '-') {
             before = i;
-
+    //check a minus before first number
             if (st[before] == '-' && 
             (st[before - 1] == '+' || st[before - 1] == '-' || typeof st[before - 1] == 'undefined')) 
             {
@@ -172,8 +168,8 @@ function parseSumSub(st) {
     let minus;
     let minus2;
     let newst = [];
+    //check a minus before first number
     if(st[0] == '-') {
-        
         minus = -1;
         st = st.slice(1);
         if (!st.includes('-') && !st.includes('+')) {
@@ -183,6 +179,7 @@ function parseSumSub(st) {
     } else {
         minus = 1;
     }
+
     for (let i = 0; i < st.length; i++) {
         if (st[i] == '+') {
             firstPlus = i;
@@ -192,6 +189,9 @@ function parseSumSub(st) {
 
     for (let i = 0; i < st.length; i++) {
         if (st[i] == '-') {
+            if (st[i - 1] == 'e') {
+                continue;
+            }
             firstMinus = i;
             break;
         }
@@ -219,7 +219,7 @@ function parseSumSub(st) {
     for (let i = 0; i < operator; i++) {
         first += st[i];
     }
-
+    //check a minus before second number
     if(st[operator + 1] == '-') {
         minus2 = -1;
         for (let k = 0; k < st.length; k++) {
@@ -229,11 +229,11 @@ function parseSumSub(st) {
                 newst.push(st[k]);
             }
         }
-        st = newst.join('');
-        
+        st = newst.join(''); 
     } else {
         minus2 = 1;
     }
+    //look for a next operator
     for (let i = operator + 1; i < st.length; i++) {
         if (st[i] == '+' || st[i] == '-') {
             nextArg = i;
@@ -274,11 +274,9 @@ function expressionCalculator(expr) {
         expr = parseSumSub(expr);
     }
       res = expr;
-   
     return parseFloat(res);
 
 }
-//console.log(expressionCalculator(' 24 - 23 * 17 / (  93 + 52 * 70 * (  6 + 91 / (  (  4 / 39 / 8 * 30  ) / (  22 * 97 * (  32 * 20 * (  82 - 80 * 51 / 89 * 9  ) * 56 + 82  ) * 89  ) - 17 - 17  ) / 29 / 81  )  ) '));
 
 module.exports = {
     expressionCalculator

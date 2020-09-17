@@ -67,14 +67,15 @@ function parseMultiplyDiv(st) {
     let after;
     let res;
     let div = 0;
-    let minus;
-    let minus2;
-    if(st[0] == '-') {
+    let minus = 1;
+    let minus2 = 1;
+    let newst = [];
+    /*if(st[0] == '-') {
         minus = -1;
         st = st.slice(1);
     } else {
         minus = 1;
-    }
+    }*/
     for (let i = 0; i < st.length; i++) {
         if ((st[i] == '*') || (st[i] == '/')) {
             operator = i;
@@ -84,12 +85,21 @@ function parseMultiplyDiv(st) {
             break;
         }
     }
+
     if(st[operator + 1] == '-') {
         minus2 = -1;
-        st = st.slice(1);
+        for (let k = 0; k < st.length; k++) {
+            if (k == operator + 1) {
+                newst.push('');
+            } else {
+                newst.push(st[k]);
+            }
+        }
+        st = newst.join('');
     } else {
         minus2 = 1;
     }
+
     for (let i = operator + 1; i < st.length; i++) {
         if (st[i] == '*' || st[i] == '/' || st[i] == '+' || st[i] == '-') {
             after = i;
@@ -106,6 +116,24 @@ function parseMultiplyDiv(st) {
     for (let i = operator - 1; i >= 0; i--) {
         if (st[i] == '*' || st[i] == '/' || st[i] == '+' || st[i] == '-') {
             before = i;
+
+            if (st[before] == '-' && 
+            (st[before - 1] == '+' || st[before - 1] == '-' || st[before - 1] == '')) 
+            {
+                minus = -1;
+                newst = [];
+                for (let k = 0; k < st.length; k++) {
+                    if (k == before) {
+                        newst.push('');
+                    } else {
+                        newst.push(st[k]);
+                    }
+                }
+                st = newst.join('');
+                before = before - 1;
+                operator--;
+                after--;
+            }
             break;
         } else {
             before = -1;
@@ -142,6 +170,8 @@ function parseSumSub(st) {
     let second = '';
     let nextArg; 
     let minus;
+    let minus2;
+    let newst = [];
     if(st[0] == '-') {
         
         minus = -1;
@@ -190,6 +220,20 @@ function parseSumSub(st) {
         first += st[i];
     }
 
+    if(st[operator + 1] == '-') {
+        minus2 = -1;
+        for (let k = 0; k < st.length; k++) {
+            if (k == operator + 1) {
+                newst.push('');
+            } else {
+                newst.push(st[k]);
+            }
+        }
+        st = newst.join('');
+        
+    } else {
+        minus2 = 1;
+    }
     for (let i = operator + 1; i < st.length; i++) {
         if (st[i] == '+' || st[i] == '-') {
             nextArg = i;
@@ -203,7 +247,7 @@ function parseSumSub(st) {
         second += st[i];
     }
 
-    res = minus * first + type * second;
+    res = minus * first + type * second * minus2;
 
 
     st = st.replace(st.slice(0, nextArg), res);
@@ -230,10 +274,12 @@ function expressionCalculator(expr) {
         expr = parseSumSub(expr);
     }
       res = expr;
-    
+   
     return parseFloat(res);
 
 }
+
+//console.log(expressionCalculator(' 57 - 71 + (  14 + 3 - 24 * 100 / 23  ) / 53 '));
 
 module.exports = {
     expressionCalculator
